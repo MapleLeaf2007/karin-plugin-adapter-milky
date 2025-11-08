@@ -36,35 +36,108 @@
 pnpm add karin-plugin-adapter-milky -w
 ```
 
+## 使用说明
+
+### 第一次使用
+
+1. **安装插件**（见上方安装命令）
+
+2. **启动 Karin**
+   
+   首次启动时，插件会自动创建配置文件：
+   - 配置目录：`@karinjs/karin-plugin-adapter-milky/config/`
+   - 配置文件：`config.json`
+
+3. **修改配置**
+   
+   找到并编辑配置文件：
+   ```json
+   {
+     "websocket": {
+       "enable": true,  // 改为 true 启用
+       "url": "ws://your-milky-server:3000/event",  // 修改为你的服务器地址
+       "accessToken": "your-token"  // 如果需要认证，填写token
+     }
+   }
+   ```
+
+4. **重启 Karin**
+   
+   配置修改后重启，适配器会自动连接并注册 Bot
+
+### 配置文件监听
+
+插件会自动监听配置文件变化并提示，但需要重启才能应用更改。
+
+### 多适配器模式
+
+可以同时启用 WebSocket 和 HTTP：
+
+```json
+{
+  "websocket": {
+    "enable": true,
+    "url": "ws://server1:3000/event"
+  },
+  "http": {
+    "enable": true,
+    "baseUrl": "http://server2:3000"
+  }
+}
+```
+
 ---
 
 ## 快速开始
 
-### 配置文件方式（推荐）
+### 自动配置（推荐）
 
-在 Karin 的配置目录中创建 `config/adapter.yaml`（如果还没有），添加 Milky 适配器配置：
+插件会在首次加载时自动创建配置文件。编辑配置文件即可启用适配器：
 
-```yaml
-milky:
-  # WebSocket 模式
-  websocket:
-    enable: true
-    url: ws://localhost:3000/event
-    accessToken: your-access-token  # 可选
-    autoReconnect: true
-    reconnectInterval: 5000
-    maxReconnectAttempts: 10
+**配置文件位置：** `@karinjs/karin-plugin-adapter-milky/config/config.json`
 
-  # HTTP 模式
-  http:
-    enable: false
-    baseUrl: http://localhost:3000
-    accessToken: your-access-token  # 可选
+```json
+{
+  "websocket": {
+    "enable": true,
+    "url": "ws://localhost:3000/event",
+    "accessToken": "",
+    "autoReconnect": true,
+    "reconnectInterval": 5000,
+    "maxReconnectAttempts": 10,
+    "timeout": 120000
+  },
+  "http": {
+    "enable": false,
+    "baseUrl": "http://localhost:3000",
+    "accessToken": "",
+    "timeout": 120000
+  }
+}
 ```
 
-### 代码方式
+**使用步骤：**
 
-在你的 Karin 插件或应用中：
+1. 安装插件：`pnpm add karin-plugin-adapter-milky -w`
+2. 重启 Karin，插件会自动创建配置文件
+3. 修改配置文件中的 `url` 和 `accessToken`
+4. 将 `enable` 设置为 `true`
+5. 再次重启 Karin
+
+适配器会自动连接并注册到 Karin Bot 列表。
+
+### Web UI 配置
+
+如果你的 Karin 安装了 Web UI，也可以通过 Web 界面配置适配器：
+
+1. 访问 Karin Web UI
+2. 进入"插件管理" > "Milky适配器"
+3. 在界面中修改配置
+4. 保存并重启 Karin
+
+### 代码方式（高级）
+
+如果需要更灵活的控制，可以手动创建适配器：
 
 ```typescript
 import { createMilkyWebSocket, createMilkyHttp } from 'karin-plugin-adapter-milky'
@@ -88,6 +161,12 @@ const adapter = await createMilkyHttp({
 ---
 
 ## 配置说明
+
+### 配置文件
+
+配置文件位于：`@karinjs/karin-plugin-adapter-milky/config/config.json`
+
+插件会在首次加载时自动复制默认配置文件。修改配置后需要重启 Karin 才能生效。
 
 ### WebSocket 配置
 
@@ -174,7 +253,16 @@ src/
 ├── api/               # API 类型定义
 ├── event/             # 事件类型
 ├── connection/        # 连接层（HTTP/WebSocket）
-└── index.ts           # 入口文件
+├── utils/             # 工具函数
+│   ├── Root.ts       # 插件根信息
+│   ├── dir.ts        # 目录路径管理
+│   ├── config.ts     # 配置文件加载
+│   └── index.ts
+├── web.config.ts      # Web UI 配置
+└── index.ts           # 入口文件（自动加载配置）
+
+config/                # 默认配置文件
+└── config.json        # Milky 适配器配置
 ```
 
 ### 本地开发

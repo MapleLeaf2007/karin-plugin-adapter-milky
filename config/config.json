@@ -1,0 +1,17 @@
+{
+  "websocket": {
+    "enable": true,
+    "url": "ws://localhost:3000/event",
+    "accessToken": "",
+    "autoReconnect": true,
+    "reconnectInterval": 5000,
+    "maxReconnectAttempts": 10,
+    "timeout": 120000
+  },
+  "http": {
+    "enable": false,
+    "baseUrl": "http://localhost:3000",
+    "accessToken": "",
+    "timeout": 120000
+  }
+}
