@@ -1,3 +1,2 @@
 export * from './Root'
-export * from './dir'
-export * from './config'
+export * from './other'
