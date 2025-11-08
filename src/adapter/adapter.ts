@@ -130,6 +130,238 @@ export class AdapterMilky extends AdapterBase {
   }
 
   /**
+   * 获取群头像URL
+   */
+  async getGroupAvatarUrl (groupId: string, size: 0 | 40 | 100 | 140 = 0): Promise<string> {
+    return `https://p.qlogo.cn/gh/${groupId}/${groupId}/${size || 100}`
+  }
+
+  /**
+   * 获取好友列表
+   */
+  async getFriendList (): Promise<any[]> {
+    try {
+      const result = await this._milky.callApi('get_friend_list', {})
+      return result as any[]
+    } catch (error) {
+      logger.error('[Milky] 获取好友列表失败:', error)
+      return []
+    }
+  }
+
+  /**
+   * 获取群列表
+   */
+  async getGroupList (): Promise<any[]> {
+    try {
+      const result = await this._milky.callApi('get_group_list', {})
+      return result as any[]
+    } catch (error) {
+      logger.error('[Milky] 获取群列表失败:', error)
+      return []
+    }
+  }
+
+  /**
+   * 获取群成员列表
+   */
+  async getGroupMemberList (groupId: string): Promise<any[]> {
+    try {
+      const result = await this._milky.callApi('get_group_member_list', { group_id: groupId })
+      return result as any[]
+    } catch (error) {
+      logger.error('[Milky] 获取群成员列表失败:', error)
+      return []
+    }
+  }
+
+  /**
+   * 获取群成员信息
+   */
+  async getGroupMemberInfo (groupId: string, userId: string): Promise<any> {
+    try {
+      const result = await this._milky.callApi('get_group_member_info', {
+        group_id: groupId,
+        user_id: userId,
+      })
+      return result
+    } catch (error) {
+      logger.error('[Milky] 获取群成员信息失败:', error)
+      return null
+    }
+  }
+
+  /**
+   * 设置群名称
+   */
+  async setGroupName (groupId: string, groupName: string): Promise<void> {
+    await this._milky.callApi('set_group_name', {
+      group_id: groupId,
+      group_name: groupName,
+    })
+  }
+
+  /**
+   * 设置群成员名片
+   */
+  async setGroupCard (groupId: string, userId: string, card: string): Promise<void> {
+    await this._milky.callApi('set_group_member_card', {
+      group_id: groupId,
+      user_id: userId,
+      card,
+    })
+  }
+
+  /**
+   * 设置群管理员
+   */
+  async setGroupAdmin (groupId: string, userId: string, enable: boolean): Promise<void> {
+    await this._milky.callApi('set_group_member_admin', {
+      group_id: groupId,
+      user_id: userId,
+      enable,
+    })
+  }
+
+  /**
+   * 群成员禁言
+   */
+  async setGroupMute (groupId: string, userId: string, duration: number): Promise<void> {
+    await this._milky.callApi('set_group_member_mute', {
+      group_id: groupId,
+      user_id: userId,
+      duration,
+    })
+  }
+
+  /**
+   * 全员禁言
+   */
+  async setGroupWholeMute (groupId: string, enable: boolean): Promise<void> {
+    await this._milky.callApi('set_group_whole_mute', {
+      group_id: groupId,
+      enable,
+    })
+  }
+
+  /**
+   * 踢出群成员
+   */
+  async kickGroupMember (groupId: string, userId: string, rejectAddRequest = false): Promise<void> {
+    await this._milky.callApi('kick_group_member', {
+      group_id: groupId,
+      user_id: userId,
+      reject_add_request: rejectAddRequest,
+    })
+  }
+
+  /**
+   * 退出群聊
+   */
+  async quitGroup (groupId: string): Promise<void> {
+    await this._milky.callApi('quit_group', {
+      group_id: groupId,
+    })
+  }
+
+  /**
+   * 获取消息 (overload 1)
+   */
+  async getMsg (messageId: string): Promise<any>
+  /**
+   * 获取消息 (overload 2)
+   */
+  async getMsg (contact: Contact, messageId: string): Promise<any>
+  /**
+   * 获取消息 (implementation)
+   */
+  async getMsg (contactOrId: Contact | string, messageId?: string): Promise<any> {
+    try {
+      // 如果第一个参数是字符串，就是messageId
+      if (typeof contactOrId === 'string') {
+        const result = await this._milky.callApi('get_message', {
+          message_id: contactOrId,
+        })
+        return result
+      }
+
+      // 否则是contact + messageId
+      const result = await this._milky.callApi('get_message', {
+        message_id: messageId!,
+      })
+      return result
+    } catch (error) {
+      logger.error('[Milky] 获取消息失败:', error)
+      return null
+    }
+  }
+
+  /**
+   * 获取历史消息 (overload 1 - by seq)
+   */
+  async getHistoryMsg (contact: Contact, startMsgSeq: number, count: number): Promise<any[]>
+  /**
+   * 获取历史消息 (overload 2 - by id)
+   */
+  async getHistoryMsg (contact: Contact, startMsgId: string, count: number): Promise<any[]>
+  /**
+   * 获取历史消息 (implementation)
+   */
+  async getHistoryMsg (contact: Contact, startMsgSeqOrId: number | string, count: number = 20): Promise<any[]> {
+    try {
+      const params: any = { count }
+
+      if (contact.scene === 'friend') {
+        params.user_id = contact.peer
+      } else if (contact.scene === 'group') {
+        params.group_id = contact.peer
+      }
+
+      // 添加起始消息参数
+      if (typeof startMsgSeqOrId === 'number') {
+        params.start_seq = startMsgSeqOrId
+      } else {
+        params.start_id = startMsgSeqOrId
+      }
+
+      const result = await this._milky.callApi('get_history_messages', params)
+      return result as any[]
+    } catch (error) {
+      logger.error('[Milky] 获取历史消息失败:', error)
+      return []
+    }
+  }
+
+  /**
+   * 发送好友戳一戳
+   */
+  async sendFriendNudge (userId: string): Promise<void> {
+    await this._milky.callApi('send_friend_nudge', {
+      user_id: userId,
+    })
+  }
+
+  /**
+   * 发送群戳一戳
+   */
+  async sendGroupNudge (groupId: string, userId: string): Promise<void> {
+    await this._milky.callApi('send_group_nudge', {
+      group_id: groupId,
+      user_id: userId,
+    })
+  }
+
+  /**
+   * 点赞
+   */
+  async sendProfileLike (userId: string, times: number = 1): Promise<void> {
+    await this._milky.callApi('send_profile_like', {
+      user_id: userId,
+      times,
+    })
+  }
+
+  /**
    * 转换Karin消息元素到Milky消息格式
    */
   private convertToMilkyMessage (elements: Array<SendElement>): Array<any> {
