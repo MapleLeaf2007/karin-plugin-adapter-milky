@@ -40,6 +40,8 @@ pnpm add karin-plugin-adapter-milky -w
 
 ## 快速开始
 
+查看 `examples/` 目录获取更多示例代码。
+
 ### HTTP 模式
 
 ```typescript
@@ -59,6 +61,8 @@ const result = await client.callApi('send_private_message', {
   message: [{ type: 'text', data: { text: 'Hello!' } }]
 })
 ```
+
+完整示例：[examples/http-example.ts](./examples/http-example.ts)
 
 ### WebSocket 模式
 
@@ -86,6 +90,10 @@ const result = await client.callApi('send_group_message', {
   message: [{ type: 'text', data: { text: 'Hello, group!' } }]
 })
 ```
+
+完整示例：
+- WebSocket基础使用：[examples/websocket-example.ts](./examples/websocket-example.ts)
+- Karin集成示例：[examples/karin-integration.ts](./examples/karin-integration.ts)
 
 ---
 
