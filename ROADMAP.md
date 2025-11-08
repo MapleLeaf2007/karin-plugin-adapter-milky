@@ -76,23 +76,24 @@
 - [ ] uploadFile - 上传文件
 - [ ] downloadFile - 下载文件
 
-## 阶段四：事件系统完善 🔄 (进行中)
+## 阶段四：事件系统完善 ✅ (已完成)
 
 ### 4.1 通知事件
 - [x] 好友事件
   - [x] 好友请求 (日志记录)
   - [ ] 好友添加
   - [ ] 好友删除
-  - [ ] 好友戳一戳
-  - [ ] 好友文件上传
+  - [x] 好友戳一戳 (日志记录)
+  - [x] 好友文件上传 (日志记录)
 - [x] 群组事件
   - [x] 群成员增加 (日志记录)
   - [x] 群成员减少 (日志记录)
   - [x] 群管理员变更 (日志记录)
   - [ ] 群禁言
-  - [ ] 群名称变更
-  - [ ] 群精华消息
-  - [ ] 群消息表情回应
+  - [x] 群名称变更 (日志记录)
+  - [x] 群精华消息 (日志记录)
+  - [x] 群消息表情回应 (日志记录)
+  - [x] 群戳一戳 (日志记录)
 
 ### 4.2 请求事件
 - [x] 好友请求 (日志记录)
@@ -105,20 +106,28 @@
 - [ ] 生命周期事件
 - [ ] 心跳事件
 
-## 阶段五：Karin 集成优化 ⏳ (待开始)
+## 阶段五：Karin 集成优化 🔄 (进行中)
 
-### 5.1 自定义路由 (推荐)
-- [ ] 创建 Milky 专用路由
-- [ ] WebSocket 连接管理路由
-- [ ] 配置管理路由
-- [ ] 状态查询路由
+### 5.1 自定义路由 ✅
+- [x] 创建 Milky 专用路由
+- [x] WebSocket 连接管理路由
+- [x] 适配器注册到路由管理器
+- [x] 状态查询路由
+  - GET /api/milky/status - 获取所有适配器状态
+  - GET /api/milky/status/:selfId - 获取单个适配器状态
+  - POST /api/milky/reconnect/:selfId - 重连适配器
+- [x] 路由导出供手动设置
 
 ### 5.2 使用更多 Karin 内部 API
-- [ ] segment 工具使用
+- [x] segment 工具使用 (已在 message.ts 中使用)
+- [x] createFriendMessage/createGroupMessage (已在 message.ts 中使用)
+- [x] contactFriend/contactGroup (已在 message.ts 中使用)
+- [x] senderFriend/senderGroup (已在 message.ts 中使用)
+- [x] logger 日志系统 (全局使用)
 - [ ] makeMessage 消息构造
 - [ ] makeForward 转发消息构造
 - [ ] hooks 钩子系统集成
-- [ ] watch 文件监听
+- [ ] watch 文件监听 (已在 config.ts 中使用)
 - [ ] redis 缓存使用
 - [ ] render 渲染功能
 
@@ -164,17 +173,24 @@
 
 ## 当前优先级
 
-### 立即实现 (本次提交)
+### 已完成 ✅
 1. ✅ 创建实现路线图
-2. 🔄 实现消息事件接收和转换
-3. 🔄 完善消息元素转换
-4. 🔄 使用 Karin 内部 API (segment, createMessage 等)
+2. ✅ 实现消息事件接收和转换
+3. ✅ 完善消息元素转换
+4. ✅ 使用 Karin 内部 API (segment, createMessage 等)
+5. ✅ 扩展 API 实现 (好友、群组、消息)
+6. ✅ 事件系统完善 (15+ 事件监听)
+7. ✅ 自定义路由实现
+
+### 进行中 🔄
+1. 🔄 Karin 更深度集成 (hooks, redis 等)
+2. 🔄 Web UI 完善
 
 ### 下一步
-1. 实现更多事件类型
-2. 扩展 API 方法
-3. 添加自定义路由
-4. 集成测试
+1. 完善 Web UI 集成
+2. 添加单元测试和集成测试
+3. 性能优化和稳定性增强
+4. 文档完善
 
 ## 参考资料
 

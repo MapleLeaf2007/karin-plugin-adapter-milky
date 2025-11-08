@@ -2,6 +2,7 @@ import { logger } from 'node-karin'
 import { Root } from './utils/Root'
 import { config } from './utils/config'
 import { createMilkyWebSocket, createMilkyHttp } from './adapter'
+import { milkyRouter } from './router'
 
 // 导出适配器
 export * from './adapter'
@@ -14,6 +15,9 @@ export * from './connection'
 
 // 导出配置和工具
 export * from './utils'
+
+// 导出路由
+export * from './router'
 
 /** 适配器加载日志 */
 logger.info(`[${Root.pluginName}] 适配器 v${Root.pluginVersion} 加载完成~`)
@@ -61,4 +65,10 @@ setTimeout(() => {
   initAdapters().catch(err => {
     logger.error('[Milky] 适配器初始化异常:', err)
   })
+  
+  // 注意：路由设置需要访问 Karin 的 app 实例
+  // 如果 Karin 提供了全局 app 访问方式，可以在这里设置路由
+  // 例如: milkyRouter.setup(global.karinApp)
+  logger.info('[Milky Router] 路由功能已就绪，可通过 milkyRouter.setup(app) 手动设置')
 }, 1000)
+

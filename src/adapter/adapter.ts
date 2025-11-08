@@ -10,7 +10,14 @@ import {
   handleGroupAdminChange,
   handleMessageRecall,
   handleBotOffline,
+  handleFriendNudge,
+  handleFriendFileUpload,
+  handleGroupNameChange,
+  handleGroupEssenceMessageChange,
+  handleGroupMessageReaction,
+  handleGroupNudge,
 } from './events'
+import { registerAdapterToRouter, unregisterAdapterFromRouter } from '../router'
 import type { Contact, SendElement, SendMsgResults } from 'node-karin'
 import type { MilkyType } from '../core/types'
 
@@ -80,6 +87,39 @@ export class AdapterMilky extends AdapterBase {
     this._milky.on('bot_offline', (data) => {
       handleBotOffline(data, this)
     })
+
+    // 监听好友戳一戳事件
+    this._milky.on('friend_nudge', (data) => {
+      handleFriendNudge(data, this)
+    })
+
+    // 监听好友文件上传事件
+    this._milky.on('friend_file_upload', (data) => {
+      handleFriendFileUpload(data, this)
+    })
+
+    // 监听群名称变更事件
+    this._milky.on('group_name_change', (data) => {
+      handleGroupNameChange(data, this)
+    })
+
+    // 监听群精华消息变更事件
+    this._milky.on('group_essence_message_change', (data) => {
+      handleGroupEssenceMessageChange(data, this)
+    })
+
+    // 监听群消息表情回应事件
+    this._milky.on('group_message_reaction', (data) => {
+      handleGroupMessageReaction(data, this)
+    })
+
+    // 监听群戳一戳事件 (如果 Milky 协议支持单独的群戳一戳事件)
+    // 注意：某些协议可能将群戳一戳合并在 friend_nudge 中
+    if ('group_nudge' in this._milky.eventNames?.() || true) {
+      this._milky.on('group_nudge' as any, (data) => {
+        handleGroupNudge(data, this)
+      })
+    }
   }
 
   /**
@@ -89,6 +129,9 @@ export class AdapterMilky extends AdapterBase {
     const commType = this._milky instanceof MilkyWebSocket ? 'webSocketClient' : 'http'
     logger.bot('info', this.selfId, `[Milky][${commType}] 连接成功`)
     this.adapter.index = registerBot(commType, this)
+    
+    // 注册到路由管理器
+    registerAdapterToRouter(this.selfId, this)
   }
 
   /**
@@ -97,6 +140,9 @@ export class AdapterMilky extends AdapterBase {
   unregisterBot () {
     unregisterBot('index', this.adapter.index)
     logger.bot('info', this.selfId, '连接关闭')
+    
+    // 从路由管理器移除
+    unregisterAdapterFromRouter(this.selfId)
   }
 
   /** 设置适配器信息 */
