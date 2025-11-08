@@ -133,12 +133,81 @@ export class AdapterMilky extends AdapterBase {
    * 转换Karin消息元素到Milky消息格式
    */
   private convertToMilkyMessage (elements: Array<SendElement>): Array<any> {
-    return elements.map(element => {
-      // 简单的转换，实际需要根据element类型进行详细转换
-      if ('type' in element) {
-        return element
+    const milkyMessage: any[] = []
+
+    for (const element of elements) {
+      // 如果是字符串，转换为文本消息
+      if (typeof element === 'string') {
+        milkyMessage.push({ type: 'text', data: { text: element } })
+        continue
       }
-      return { type: 'text', data: { text: String(element) } }
-    })
+
+      // 如果已经是正确的格式，直接使用
+      if (typeof element === 'object' && element !== null && 'type' in element) {
+        const el: any = element
+        // 根据类型进行格式转换
+        switch (el.type) {
+          case 'text':
+            milkyMessage.push({ type: 'text', data: { text: el.data?.text || '' } })
+            break
+          case 'image':
+            milkyMessage.push({
+              type: 'image',
+              data: {
+                file: el.data?.file || el.data?.url,
+                url: el.data?.url,
+              },
+            })
+            break
+          case 'face':
+            milkyMessage.push({ type: 'face', data: { id: String(el.data?.id || 0) } })
+            break
+          case 'at':
+            milkyMessage.push({
+              type: 'at',
+              data: { qq: el.data?.qq === 'all' ? 'all' : el.data?.qq },
+            })
+            break
+          case 'reply':
+            milkyMessage.push({ type: 'reply', data: { id: el.data?.id } })
+            break
+          case 'record':
+            milkyMessage.push({
+              type: 'record',
+              data: { file: el.data?.file || el.data?.url },
+            })
+            break
+          case 'video':
+            milkyMessage.push({
+              type: 'video',
+              data: { file: el.data?.file || el.data?.url },
+            })
+            break
+          case 'file':
+            milkyMessage.push({
+              type: 'file',
+              data: { file: el.data?.file || el.data?.url },
+            })
+            break
+          case 'json':
+            milkyMessage.push({ type: 'json', data: el.data })
+            break
+          case 'xml':
+            milkyMessage.push({ type: 'xml', data: { data: el.data?.data } })
+            break
+          case 'markdown':
+            milkyMessage.push({ type: 'markdown', data: { content: el.data?.content } })
+            break
+          default:
+            // 未知类型，尝试直接传递
+            milkyMessage.push(element)
+        }
+      } else {
+        // 其他情况，转换为文本
+        milkyMessage.push({ type: 'text', data: { text: String(element) } })
+      }
+    }
+
+    return milkyMessage
   }
 }
