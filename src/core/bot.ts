@@ -1,5 +1,5 @@
 import { BotCfg } from '@/config/types'
-import { AdapterBase, AdapterType, logger, registerBot, unregisterBot } from 'node-karin'
+import karin, { AdapterBase, AdapterType, logger, registerBot, unregisterBot } from 'node-karin'
 import { Client } from './Client'
 
 export class AdapterMilky extends AdapterBase implements AdapterType {
@@ -27,9 +27,9 @@ export class AdapterMilky extends AdapterBase implements AdapterType {
     })
     this.super.on('system_offline', (event) => {
       this.logger('error', 'Bot下线: ', event)
-      unregisterBot('index', this.adapter.index)
+      if (karin.getBotByIndex(this.adapter.index)) unregisterBot('index', this.adapter.index)
     })
-    this.super.on('system_success', () => {
+    this.super.once('system_success', () => {
       const selfId = String(this.super.self.uin)
       this.account = {
         uin: selfId,

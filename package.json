@@ -57,6 +57,7 @@
   },
   "dependencies": {
     "@saltify/milky-types": "^1.0.0",
+    "eventsource": "^4.0.0",
     "ws": "^8.18.3"
   }
 }

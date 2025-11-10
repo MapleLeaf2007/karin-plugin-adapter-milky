@@ -36,7 +36,7 @@ type EventMap = {
 } & {
   system_error: (msg: unknown) => void
   system_success: () => void
-  system_offline: (msg: string) => void
+  system_offline: (...args: any) => void
 }
 type ApiResponse<T = unknown> =
   | {
@@ -77,6 +77,8 @@ export class Client extends EventEmitter {
     connectTime: number
     /** 事件链接的鉴权Token */
     token: string
+    /** 在线状态 */
+    online: boolean
   }
 
   #Clear: null | (() => void) = null
@@ -99,11 +101,17 @@ export class Client extends EventEmitter {
           : '',
       ApiUrl: url + '/api',
       connectTime: 0,
-      token: cfg.token
+      token: cfg.token,
+      online: false
     }
+    const headers: any = {
+      Accept: 'application/json',
+      'Content-Type': 'application/json'
+    }
+    if (cfg.token) headers.Authorization = `Bearer ${cfg.token}`
     this.#axios = axios.create({
       baseURL: this.self.ApiUrl,
-      headers: { Authorization: `Bearer ${cfg.token}` }
+      headers
     })
   }
 
@@ -128,7 +136,7 @@ export class Client extends EventEmitter {
         }
       } else if (this.self.protocol === 'websocket') {
         const ws = new WebSocketHandle(this)
-        await ws.ready()
+        ws.connect()
         this.#Clear = () => {
           ws.clear()
         }
@@ -137,7 +145,8 @@ export class Client extends EventEmitter {
         this.#Clear!()
         this.emit('system_offline', data.data.reason)
       })
-      this.emit('system_success')
+      this.on('system_offline', () => { this.self.online = false })
+      this.on('system_success', () => { this.self.online = true })
     } catch (err) {
       this.emit('system_error', err)
     }

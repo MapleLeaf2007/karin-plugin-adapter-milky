@@ -17,6 +17,7 @@ class Handler {
 
     this.ClientMap.set(client.self.uin, client)
     this.setHeartbeat(client)
+    client.emit('system_success')
   }
 
   /** 触发事件 */
@@ -53,7 +54,7 @@ class Handler {
         }
       } catch (err) {
         this.clear(client.self.uin)
-        client.emit('system_offline', '获取客户端信息错误')
+        client.emit('system_offline', '获取客户端信息错误', err)
       }
     }, 30000)
 
