@@ -178,47 +178,69 @@ export class Client extends EventEmitter {
     return await this.request<GetImplInfoOutput>('/get_impl_info', {})
   }
 
-  /** 获取用户个人信息 */
+  /** 获取用户个人信息
+   * @param userId 用户QQ号
+   */
   async getUserProfile (userId: bigint) {
     return await this.request<GetUserProfileOutput>('/get_user_profile', { user_id: Number(userId) })
   }
 
-  /** 获取好友列表 */
+  /** 获取好友列表
+   * @param [noCache=false] 是否强制不使用缓存
+   */
   async getFriendList (noCache: boolean = false) {
     return await this.request<GetFriendListOutput>('/get_friend_list', { no_cache: noCache })
   }
 
-  /** 获取好友信息 */
+  /** 获取好友信息
+   * @param userId 好友 QQ 号
+   * @param [noCache=false] 是否强制不使用缓存
+   */
   async getFriendInfo (userId: number, noCache: boolean = false) {
     return await this.request<GetFriendInfoOutput>('/get_friend_info', { user_id: Number(userId), no_cache: noCache })
   }
 
-  /** 获取群信息 */
+  /** 获取群信息
+   * @param groupId 群号
+   * @param [noCache=false] 是否强制不使用缓存
+   */
   async getGroupInfo (groupId: number, noCache: boolean = false) {
     return await this.request<GetGroupInfoOutput>('/get_group_info', { group_id: Number(groupId), no_cache: noCache })
   }
 
-  /** 获取群列表 */
+  /** 获取群列表
+   * @param [noCache=false] 是否强制不使用缓存
+   */
   async getGroupList (noCache: boolean = false) {
     return await this.request<GetGroupListOutput>('/get_group_list', { no_cache: noCache })
   }
 
-  /** 获取群成员列表 */
+  /** 获取群成员列表
+   * @param groupId 群号
+   * @param [noCache=false] 是否强制不使用缓存
+   */
   async getGroupMemberList (groupId: number, noCache: boolean = false) {
     return await this.request<GetGroupMemberListOutput>('/get_group_member_list', { group_id: Number(groupId), no_cache: noCache })
   }
 
-  /** 获取群成员信息 */
+  /** 获取群成员信息
+   * @param groupId 群号
+   * @param userId 群成员 QQ 号
+   * @param [noCache=false] 是否强制不使用缓存
+   */
   async getGroupMemberInfo (groupId: number, userId: number, noCache: boolean = false) {
     return await this.request<GetGroupMemberInfoOutput>('/get_group_member_info', { group_id: Number(groupId), user_id: Number(userId), no_cache: noCache })
   }
 
-  /** 获取 Cookies */
+  /** 获取 Cookies
+   * @param domain 需要获取 Cookies 的域名
+   */
   async getCookies (domain: string) {
     return await this.request<GetCookiesOutput>('/get_cookies', { domain })
   }
 
-  /** 获取 CSRF Token */
+  /** 获取 CSRF Token
+   */
   async getCsrfToken () {
     return await this.request<GetCSRFTokenOutput>('/get_csrf_token', {})
   }
@@ -396,5 +418,24 @@ export class Client extends EventEmitter {
   /** 拒绝他人邀请自身入群 */
   async rejectGroupInvitation (groupId: number, invitationSeq: number) {
     return await this.request('/reject_group_invitation', { group_id: Number(groupId), invitation_seq: invitationSeq })
+  }
+
+  /** 解析消息ID */
+  deserializeMsgId (msgId: string): {
+    scene: 'friend' | 'group' | 'temp'
+    peerId: number
+    seq: number
+  } {
+    const [scene, peerId, seq] = msgId.split(':') as any
+    return {
+      scene,
+      peerId: +peerId,
+      seq: +seq
+    }
+  }
+
+  /** 组合消息Id */
+  serializeMsgId (scene: string, peerId: number, seq: number) {
+    return `${scene}:${peerId}:${seq}`
   }
 }

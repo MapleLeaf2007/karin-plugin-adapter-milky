@@ -18,7 +18,7 @@ import { AdapterName } from '@/utils'
 export const createMessage = async (event: IncomingMessage, bot: AdapterMilky) => {
   const time = event.time
   const elements = await AdapterConvertKarin(event.segments)
-  const messageId = String(event.message_seq)
+  const messageId = bot.super.serializeMsgId(event.message_scene, event.peer_id, event.message_seq)
   const userId = String(event.sender_id)
   if (event.message_scene === 'friend') {
     const nickname = event.friend.nickname
