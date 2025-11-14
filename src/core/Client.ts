@@ -1,6 +1,7 @@
 import EventEmitter from 'events'
 import axios, { AxiosInstance } from 'node-karin/axios'
 import {
+  CreateGroupFolderOutput,
   Event,
   GetCookiesOutput,
   GetCSRFTokenOutput,
@@ -10,6 +11,8 @@ import {
   GetFriendRequestsOutput,
   GetGroupAnnouncementsOutput,
   GetGroupEssenceMessagesOutput,
+  GetGroupFileDownloadUrlOutput,
+  GetGroupFilesOutput,
   GetGroupInfoOutput,
   GetGroupListOutput,
   GetGroupMemberInfoOutput,
@@ -19,11 +22,14 @@ import {
   GetImplInfoOutput,
   GetLoginInfoOutput,
   GetMessageOutput,
+  GetPrivateFileDownloadUrlOutput,
   GetResourceTempUrlOutput,
   GetUserProfileOutput,
   OutgoingSegment,
   SendGroupMessageOutput,
-  SendPrivateMessageOutput
+  SendPrivateMessageOutput,
+  UploadGroupFileOutput,
+  UploadPrivateFileOutput
 } from '@saltify/milky-types'
 import { BotCfg } from '@/config/types'
 import { Root } from '@/utils'
@@ -182,8 +188,8 @@ export class Client extends EventEmitter {
    * 获取用户个人信息
    * @param userId 用户QQ号
    */
-  async getUserProfile (userId: bigint) {
-    return await this.request<GetUserProfileOutput>('/get_user_profile', { user_id: Number(userId) })
+  async getUserProfile (userId: number) {
+    return await this.request<GetUserProfileOutput>('/get_user_profile', { user_id: +userId })
   }
 
   /**
@@ -200,7 +206,7 @@ export class Client extends EventEmitter {
    * @param [noCache=false] 是否强制不使用缓存
    */
   async getFriendInfo (userId: number, noCache: boolean = false) {
-    return await this.request<GetFriendInfoOutput>('/get_friend_info', { user_id: Number(userId), no_cache: noCache })
+    return await this.request<GetFriendInfoOutput>('/get_friend_info', { user_id: +userId, no_cache: noCache })
   }
 
   /**
@@ -209,7 +215,7 @@ export class Client extends EventEmitter {
    * @param [noCache=false] 是否强制不使用缓存
    */
   async getGroupInfo (groupId: number, noCache: boolean = false) {
-    return await this.request<GetGroupInfoOutput>('/get_group_info', { group_id: Number(groupId), no_cache: noCache })
+    return await this.request<GetGroupInfoOutput>('/get_group_info', { group_id: +groupId, no_cache: noCache })
   }
 
   /**
@@ -226,7 +232,7 @@ export class Client extends EventEmitter {
    * @param [noCache=false] 是否强制不使用缓存
    */
   async getGroupMemberList (groupId: number, noCache: boolean = false) {
-    return await this.request<GetGroupMemberListOutput>('/get_group_member_list', { group_id: Number(groupId), no_cache: noCache })
+    return await this.request<GetGroupMemberListOutput>('/get_group_member_list', { group_id: +groupId, no_cache: noCache })
   }
 
   /**
@@ -236,7 +242,7 @@ export class Client extends EventEmitter {
    * @param [noCache=false] 是否强制不使用缓存
    */
   async getGroupMemberInfo (groupId: number, userId: number, noCache: boolean = false) {
-    return await this.request<GetGroupMemberInfoOutput>('/get_group_member_info', { group_id: Number(groupId), user_id: Number(userId), no_cache: noCache })
+    return await this.request<GetGroupMemberInfoOutput>('/get_group_member_info', { group_id: +groupId, user_id: +userId, no_cache: noCache })
   }
 
   /**
@@ -258,7 +264,7 @@ export class Client extends EventEmitter {
    * @param message 消息内容
    */
   async sendPrivateMessage (userId: number, message: OutgoingSegment[]) {
-    return await this.request<SendPrivateMessageOutput>('/send_private_message', { user_id: Number(userId), message })
+    return await this.request<SendPrivateMessageOutput>('/send_private_message', { user_id: +userId, message })
   }
 
   /**
@@ -267,7 +273,7 @@ export class Client extends EventEmitter {
    * @param message 消息内容
    */
   async sendGroupMessage (groupId: number, message: OutgoingSegment[]) {
-    return await this.request<SendGroupMessageOutput>('/send_group_message', { group_id: Number(groupId), message })
+    return await this.request<SendGroupMessageOutput>('/send_group_message', { group_id: +groupId, message })
   }
 
   /**
@@ -276,7 +282,7 @@ export class Client extends EventEmitter {
    * @param messageSeq 消息序列号
    */
   async recallPrivateMessage (userId: number, messageSeq: number) {
-    return await this.request('/recall_private_message', { user_id: Number(userId), message_seq: Number(messageSeq) })
+    return await this.request('/recall_private_message', { user_id: +userId, message_seq: +messageSeq })
   }
 
   /**
@@ -285,7 +291,7 @@ export class Client extends EventEmitter {
    * @param messageSeq 消息序列号
    */
   async recallGroupMessage (groupId: number, messageSeq: number) {
-    return await this.request('/recall_group_message', { group_id: Number(groupId), message_seq: Number(messageSeq) })
+    return await this.request('/recall_group_message', { group_id: +groupId, message_seq: +messageSeq })
   }
 
   /**
@@ -295,7 +301,7 @@ export class Client extends EventEmitter {
    * @param messageSeq 消息序列号
    */
   async getMessage (messageScene: 'friend' | 'group' | 'temp', peerId: number, messageSeq: number) {
-    return await this.request<GetMessageOutput>('/get_message', { message_scene: messageScene, peer_id: Number(peerId), message_seq: Number(messageSeq) })
+    return await this.request<GetMessageOutput>('/get_message', { message_scene: messageScene, peer_id: +peerId, message_seq: +messageSeq })
   }
 
   /**
@@ -306,7 +312,7 @@ export class Client extends EventEmitter {
    * @param [limit=20] 期望获取到的消息数量，最多 30 条
    */
   async getHistoryMessage (messageScene: 'friend' | 'group' | 'temp', peerId: number, start?: number, limit: number = 20) {
-    return await this.request<GetHistoryMessagesOutput>('/get_history_messages', { message_scene: messageScene, peer_id: Number(peerId), start_message_seq: start, limit })
+    return await this.request<GetHistoryMessagesOutput>('/get_history_messages', { message_scene: messageScene, peer_id: +peerId, start_message_seq: start, limit })
   }
 
   /**
@@ -332,7 +338,7 @@ export class Client extends EventEmitter {
    * @param messageSeq 标为已读的消息序列号，该消息及更早的消息将被标记为已读
    */
   async markMessageAsRead (messageScene: 'friend' | 'group' | 'temp', peerId: number, messageSeq: number) {
-    return await this.request('/mark_message_as_read', { message_scene: messageScene, peer_id: Number(peerId), message_seq: Number(messageSeq) })
+    return await this.request('/mark_message_as_read', { message_scene: messageScene, peer_id: +peerId, message_seq: +messageSeq })
   }
 
   /**
@@ -341,7 +347,7 @@ export class Client extends EventEmitter {
    * @param [isSelf=false] 是否戳自己
    */
   async sendFriendNudge (userId: number, isSelf: boolean = false) {
-    return await this.request('/send_friend_nudge', { user_id: Number(userId), is_self: isSelf })
+    return await this.request('/send_friend_nudge', { user_id: +userId, is_self: isSelf })
   }
 
   /**
@@ -350,7 +356,7 @@ export class Client extends EventEmitter {
    * @param [count=1] 点赞数量
    */
   async sendProfileLike (userId: number, count: number = 1) {
-    return await this.request('/send_profile_like', { user_id: Number(userId), count })
+    return await this.request('/send_profile_like', { user_id: +userId, count })
   }
 
   /**
@@ -391,7 +397,7 @@ export class Client extends EventEmitter {
    * @returns
    */
   async setGroupName (groupId: number, name: string) {
-    return await this.request('/set_group_name', { group_id: Number(groupId), new_group_name: name })
+    return await this.request('/set_group_name', { group_id: +groupId, new_group_name: name })
   }
 
   /**
@@ -401,7 +407,7 @@ export class Client extends EventEmitter {
    * @returns
    */
   async setGroupAvatar (groupId: number, uri: string) {
-    return await this.request('/set_group_avatar', { group_id: Number(groupId), image_uri: uri })
+    return await this.request('/set_group_avatar', { group_id: +groupId, image_uri: uri })
   }
 
   /**
@@ -412,7 +418,7 @@ export class Client extends EventEmitter {
    * @returns
    */
   async setGroupMemberCard (groupId: number, userId: number, card: string) {
-    return await this.request('/set_group_member_card', { group_id: Number(groupId), user_id: Number(userId), card })
+    return await this.request('/set_group_member_card', { group_id: +groupId, user_id: +userId, card })
   }
 
   /**
@@ -423,7 +429,7 @@ export class Client extends EventEmitter {
    * @returns
    */
   async setGroupMemberSpecialTitle (groupId: number, userId: number, title: string) {
-    return await this.request('/set_group_member_special_title', { group_id: Number(groupId), user_id: Number(userId), special_title: title })
+    return await this.request('/set_group_member_special_title', { group_id: +groupId, user_id: +userId, special_title: title })
   }
 
   /**
@@ -434,7 +440,7 @@ export class Client extends EventEmitter {
    * @returns
    */
   async setGroupMemberAdmin (groupId: number, userId: number, isSet: boolean = true) {
-    return await this.request('/set_group_member_admin', { group_id: Number(groupId), user_id: Number(userId), isSet })
+    return await this.request('/set_group_member_admin', { group_id: +groupId, user_id: +userId, isSet })
   }
 
   /**
@@ -445,7 +451,7 @@ export class Client extends EventEmitter {
    * @returns
    */
   async setGroupMemberMute (groupId: number, userId: number, duration: number = 0) {
-    return await this.request('/set_group_member_mute', { group_id: Number(groupId), user_id: Number(userId), duration })
+    return await this.request('/set_group_member_mute', { group_id: +groupId, user_id: +userId, duration })
   }
 
   /**
@@ -455,7 +461,7 @@ export class Client extends EventEmitter {
    * @returns
    */
   async setGroupWholeMute (groupId: number, isMute: boolean = true) {
-    return await this.request('/set_group_whole_mute', { group_id: Number(groupId), is_mute: isMute })
+    return await this.request('/set_group_whole_mute', { group_id: +groupId, is_mute: isMute })
   }
 
   /**
@@ -466,7 +472,7 @@ export class Client extends EventEmitter {
    * @returns
    */
   async kickGroupMember (groupId: number, userId: number, rejectRequest: boolean = false) {
-    return await this.request('/kick_group_member', { group_id: Number(groupId), user_id: Number(userId), reject_add_request: rejectRequest })
+    return await this.request('/kick_group_member', { group_id: +groupId, user_id: +userId, reject_add_request: rejectRequest })
   }
 
   /**
@@ -475,7 +481,7 @@ export class Client extends EventEmitter {
    * @returns
    */
   async getGroupAnnouncements (groupId: number) {
-    return await this.request<GetGroupAnnouncementsOutput>('/get_group_announcements', { group_id: Number(groupId) })
+    return await this.request<GetGroupAnnouncementsOutput>('/get_group_announcements', { group_id: +groupId })
   }
 
   /**
@@ -486,7 +492,7 @@ export class Client extends EventEmitter {
    * @returns
    */
   async sendGroupAnnouncement (groupId: number, content: string, uri?: string) {
-    return await this.request('/send_group_announcement', { group_id: Number(groupId), content, image_uri: uri })
+    return await this.request('/send_group_announcement', { group_id: +groupId, content, image_uri: uri })
   }
 
   /**
@@ -496,7 +502,7 @@ export class Client extends EventEmitter {
    * @returns
    */
   async deleteGroupAnnouncement (groupId: number, id: string) {
-    return await this.request('/delete_group_announcement', { group_id: Number(groupId), announcement_id: String(id) })
+    return await this.request('/delete_group_announcement', { group_id: +groupId, announcement_id: String(id) })
   }
 
   /**
@@ -507,7 +513,7 @@ export class Client extends EventEmitter {
    * @returns
    */
   async getGroupEssenceMessages (groupId: number, pageIndex: number, pageSize: number) {
-    return await this.request<GetGroupEssenceMessagesOutput>('/get_group_essence_messages', { group_id: Number(groupId), page_index: Number(pageIndex), page_size: Number(pageSize) })
+    return await this.request<GetGroupEssenceMessagesOutput>('/get_group_essence_messages', { group_id: +groupId, page_index: +pageIndex, page_size: +pageSize })
   }
 
   /**
@@ -518,7 +524,7 @@ export class Client extends EventEmitter {
    * @returns
    */
   async setGroupEssenceMessage (groupId: number, messageSeq: number, isSet: boolean = true) {
-    return await this.request('/set_group_essence_message', { group_id: Number(groupId), message_seq: messageSeq, is_set: isSet })
+    return await this.request('/set_group_essence_message', { group_id: +groupId, message_seq: messageSeq, is_set: isSet })
   }
 
   /**
@@ -527,7 +533,7 @@ export class Client extends EventEmitter {
    * @returns
    */
   async quitGroup (groupId: number) {
-    return await this.request('/quit_group', { group_id: Number(groupId) })
+    return await this.request('/quit_group', { group_id: +groupId })
   }
 
   /**
@@ -539,7 +545,7 @@ export class Client extends EventEmitter {
    * @returns
    */
   async setGroupMessageReaction (groupId: number, messageSeq: number, reaction: string, isAdd: boolean = true) {
-    return await this.request('/send_group_message_reaction', { group_id: Number(groupId), message_seq: messageSeq, reaction, is_add: isAdd })
+    return await this.request('/send_group_message_reaction', { group_id: +groupId, message_seq: messageSeq, reaction, is_add: isAdd })
   }
 
   /**
@@ -549,7 +555,7 @@ export class Client extends EventEmitter {
    * @returns
    */
   async sendGroupNudge (groupId: number, userId: number) {
-    return await this.request('/send_group_nudge', { group_id: Number(groupId), user_id: Number(userId) })
+    return await this.request('/send_group_nudge', { group_id: +groupId, user_id: +userId })
   }
 
   /**
@@ -572,7 +578,7 @@ export class Client extends EventEmitter {
    * @returns
    */
   async acceptGroupRequest (noticeId: number, noticeType: 'join_request' | 'invited_join_request', groupId: number, isFiltered: boolean = false) {
-    return await this.request('/accept_group_request', { notification_seq: noticeId, notification_type: noticeType, group_id: Number(groupId), is_filtered: isFiltered })
+    return await this.request('/accept_group_request', { notification_seq: noticeId, notification_type: noticeType, group_id: +groupId, is_filtered: isFiltered })
   }
 
   /**
@@ -585,7 +591,7 @@ export class Client extends EventEmitter {
    * @returns
    */
   async rejectGroupRequest (noticeId: number, noticeType: 'join_request' | 'invited_join_request', groupId: number, isFiltered: boolean = false, reason?: string) {
-    return await this.request('/reject_group_request', { notification_seq: noticeId, notification_type: noticeType, group_id: Number(groupId), is_filtered: isFiltered, reason })
+    return await this.request('/reject_group_request', { notification_seq: noticeId, notification_type: noticeType, group_id: +groupId, is_filtered: isFiltered, reason })
   }
 
   /**
@@ -595,7 +601,7 @@ export class Client extends EventEmitter {
    * @returns
    */
   async acceptGroupInvitation (groupId: number, invitationSeq: number) {
-    return await this.request('/accept_group_invitation', { group_id: Number(groupId), invitation_seq: invitationSeq })
+    return await this.request('/accept_group_invitation', { group_id: +groupId, invitation_seq: invitationSeq })
   }
 
   /**
@@ -605,7 +611,126 @@ export class Client extends EventEmitter {
    * @returns
    */
   async rejectGroupInvitation (groupId: number, invitationSeq: number) {
-    return await this.request('/reject_group_invitation', { group_id: Number(groupId), invitation_seq: invitationSeq })
+    return await this.request('/reject_group_invitation', { group_id: +groupId, invitation_seq: invitationSeq })
+  }
+
+  /**
+   * 上传私聊文件
+   * @param userId 好友 QQ 号
+   * @param fileUri 文件 URI，支持 `file://` `http(s)://` `base64://` 三种格式
+   * @param fileName 文件名称
+   * @returns
+   */
+  async uploadPrivateFile (userId: number, fileUri: string, fileName: string) {
+    return await this.request<UploadPrivateFileOutput>('/upload_private_file', { user_id: +userId, file_uri: fileUri, file_name: fileName })
+  }
+
+  /**
+   * 上传群文件
+   * @param groupId 群号
+   * @param folderId 目标文件夹 ID
+   * @param fileUri 文件 URI，支持 `file://` `http(s)://` `base64://` 三种格式
+   * @param fileName 文件名称
+   * @returns
+   */
+  async uploadGroupFile (groupId: number, folderId: string = '/', fileUri: string, fileName: string) {
+    return await this.request<UploadGroupFileOutput>('/upload_group_file', { group_id: +groupId, parent_folder_id: folderId, file_uri: fileUri, file_name: fileName })
+  }
+
+  /**
+   * 获取私聊文件下载链接
+   * @param userId 好友 QQ 号
+   * @param fileId 文件 ID
+   * @param fileHash 文件的 TriSHA1 哈希值
+   * @returns
+   */
+  async getPrivateFileDownloadUrl (userId: string, fileId: string, fileHash: string) {
+    return await this.request<GetPrivateFileDownloadUrlOutput>('/get_private_file_download_url', { user_id: +userId, file_id: fileId, file_hash: fileHash })
+  }
+
+  /**
+   * 获取群文件下载链接
+   * @param groupId 群号
+   * @param fileId 文件 ID
+   * @returns
+   */
+  async getGroupFileDownloadUrl (groupId: number, fileId: string) {
+    return await this.request<GetGroupFileDownloadUrlOutput>('/get_group_file_download_url', { group_id: +groupId, file_id: fileId })
+  }
+
+  /**
+   * 获取群文件列表
+   * @param groupId 群号
+   * @param folderId 父文件夹 ID
+   * @returns
+   */
+  async getGroupFiles (groupId: number, folderId: string = '/') {
+    return await this.request<GetGroupFilesOutput>('/get_group_files', { group_id: +groupId, parent_folder_id: folderId })
+  }
+
+  /**
+   * 移动群文件
+   * @param groupId 群号
+   * @param fileId 文件 ID
+   * @param folderId 文件所在的文件夹 ID
+   * @param targetId 目标文件夹 ID
+   * @returns
+   */
+  async moveGroupFile (groupId: number, fileId: string, folderId: string = '/', targetId: string = '/') {
+    return await this.request('/move_group_fil', { group_id: +groupId, file_id: fileId, parent_folder_id: folderId, target_folder_id: targetId })
+  }
+
+  /**
+   * 重命名群文件
+   * @param groupId 群号
+   * @param fileId 文件 ID
+   * @param folderId 文件所在的文件夹 ID
+   * @param newName 新文件名称
+   * @returns
+   */
+  async renameGroupFile (groupId: number, fileId: string, folderId: string = '/', newName: string) {
+    return await this.request('/rename_group_file', { group_id: +groupId, file_id: fileId, parent_folder_id: folderId, new_file_name: newName })
+  }
+
+  /**
+   * 删除群文件
+   * @param groupId 群号
+   * @param fileId 文件 ID
+   * @returns
+   */
+  async deleteGroupFile (groupId: number, fileId: string) {
+    return await this.request('/delete_group_file', { group_id: +groupId, file_id: fileId })
+  }
+
+  /**
+   * 创建群文件夹
+   * @param groupId 群号
+   * @param folderName 文件夹名称
+   * @returns
+   */
+  async createGroupFolder (groupId: number, folderName: string) {
+    return await this.request<CreateGroupFolderOutput>('/create_group_folder', { group_id: +groupId, folder_name: folderName })
+  }
+
+  /**
+   * 重命名群文件夹
+   * @param groupId 群号
+   * @param folderId 文件夹 ID
+   * @param newName 新文件夹名
+   * @returns
+   */
+  async renameGroupFolder (groupId: number, folderId: string, newName: string) {
+    return await this.request('/rename_group_folder', { group_id: +groupId, folder_id: folderId, new_folder_name: newName })
+  }
+
+  /**
+   * 删除群文件夹
+   * @param groupId 群号
+   * @param folderId 文件夹 ID
+   * @returns
+   */
+  async deleteGroupFolder (groupId: number, folderId: string) {
+    return await this.request('/delete_group_folder', { group_id: +groupId, folder_id: folderId })
   }
 
   /**

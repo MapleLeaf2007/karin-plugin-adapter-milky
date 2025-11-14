@@ -58,7 +58,7 @@ export class AdapterMilky extends AdapterBase implements AdapterType {
   }
 
   get selfId (): string {
-    return this.account.uid || this.account.uin || this.account.selfId
+    return this.account.selfId || this.account.uin || this.account.uid
   }
 
   get selfName (): string {
@@ -370,6 +370,18 @@ export class AdapterMilky extends AdapterBase implements AdapterType {
   }
 
   // async pokeUser (_contact: Contact, _count?: number): Promise<boolean> {
+  //   for (let i = 0; i < (_count || 1); i++) {
+  //     const Id = +_contact.peer
+  //     if (_contact.scene === 'friend') {
+  //       await this.super.sendFriendNudge(Id, Id === +this.selfId)
+  //       return true
+  //     } else {
+  //       if (_contact.scene === 'group') {
+  //         await this.super.sendGroupNudge(Id, +_contact.subPeer)
+  //         return true
+  //       }
+  //     }
+  //   }
   // }
 
   async setFriendApplyResult (_requestId: string, _isApprove: boolean, _remark?: string): Promise<void> {
